@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f6f7f2">
+  <title>Miúdo — gestão simples</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      color-scheme: light;
+      --paper: #f6f7f2;
+      --surface: #fff;
+      --ink: #202821;
+      --muted: #707970;
+      --line: #e5e9e1;
+      --green: #236b4e;
+      --green-dark: #174b37;
+      --mint: #e4f1e8;
+      --lime: #d8f277;
+      --coral: #e8785c;
+      --coral-pale: #fff0ea;
+      --amber: #f2bd59;
+      --shadow: 0 18px 55px rgb(32 40 33 / 13%);
+      font-family: "DM Sans", sans-serif;
+      font-synthesis: none;
+      text-rendering: optimizeLegibility;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; color: var(--ink); background: var(--paper); min-height: 100vh; }
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    .app-shell { min-height: 100vh; display: grid; grid-template-columns: 238px minmax(0, 1fr); }
+    .sidebar { background: var(--green-dark); color: #f5f8f1; padding: 27px 16px 18px; display: flex; flex-direction: column; min-height: 100vh; }
+    .brand { display: flex; align-items: center; gap: 11px; padding: 0 11px 34px; }
+    .brand-mark { display: grid; place-items: center; width: 34px; height: 34px; background: var(--lime); color: var(--green-dark); border-radius: 10px; font: 800 19px "Manrope", sans-serif; }
+    .brand-name { font: 800 20px "Manrope", sans-serif; letter-spacing: 0; }
+    .brand-sub { color: #afc4b3; font-size: 11px; margin-top: 1px; }
+    .nav-label { color: #91ae99; text-transform: uppercase; font-weight: 700; font-size: 10px; letter-spacing: 1.1px; padding: 0 12px; margin: 0 0 9px; }
+    .nav-list { display: grid; gap: 5px; }
+    .nav-button { width: 100%; border: 0; border-radius: 8px; background: transparent; color: #c6d4c8; padding: 11px 12px; display: flex; align-items: center; gap: 12px; text-align: left; font-size: 13px; font-weight: 600; transition: background .18s, color .18s; }
+    .nav-button:hover { background: rgb(255 255 255 / 8%); color: white; }
+    .nav-button.active { background: var(--lime); color: var(--green-dark); }
+    .nav-icon { width: 19px; font-size: 17px; text-align: center; }
+    .sidebar-bottom { margin-top: auto; padding: 16px 10px 0; }
+    .local-note { border-top: 1px solid rgb(255 255 255 / 15%); padding-top: 14px; color: #afc4b3; font-size: 11px; line-height: 1.5; }
+    .local-note strong { color: #eef5ee; display: block; margin-bottom: 3px; }
+    main { min-width: 0; padding: 29px clamp(20px, 4vw, 57px) 50px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 18px; margin-bottom: 32px; }
+    .eyebrow { color: var(--green); font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1.1px; }
+    .page-title { font: 700 26px "Manrope", sans-serif; letter-spacing: 0; margin: 4px 0 0; }
+    .top-actions { display: flex; align-items: center; gap: 10px; }
+    .today-label { color: var(--muted); font-size: 12px; margin-right: 9px; }
+    .button { min-height: 39px; padding: 0 15px; border: 1px solid transparent; border-radius: 7px; background: var(--green); color: white; font-size: 12px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; gap: 7px; transition: background .15s, transform .15s; }
+    .button:hover { background: var(--green-dark); transform: translateY(-1px); }
+    .button.secondary { color: var(--ink); border-color: var(--line); background: white; }
+    .button.secondary:hover { background: #f3f6f1; }
+    .button.ghost { color: var(--green); border-color: transparent; background: transparent; min-height: 32px; padding: 0 8px; }
+    .button.ghost:hover { background: var(--mint); transform: none; }
+    .button.danger { background: var(--coral-pale); color: #a3432b; }
+    .button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
+    .view { display: none; animation: enter .24s ease both; }
+    .view.active { display: block; }
+    @keyframes enter { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+    .welcome-strip { background: var(--green); color: white; padding: 22px 25px; border-radius: 9px; display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 26px; overflow: hidden; position: relative; }
+    .welcome-strip::after { content: ""; position: absolute; right: 12%; top: -67px; width: 200px; height: 200px; border: 1px solid rgb(255 255 255 / 16%); border-radius: 50%; box-shadow: 0 0 0 28px rgb(255 255 255 / 4%), 0 0 0 58px rgb(255 255 255 / 3%); pointer-events: none; }
+    .welcome-strip h2 { font: 700 19px "Manrope", sans-serif; margin: 0 0 4px; letter-spacing: 0; }
+    .welcome-strip p { color: #c9ddcf; font-size: 12px; margin: 0; }
+    .welcome-strip .button { background: var(--lime); color: var(--green-dark); position: relative; z-index: 1; }
+    .welcome-strip .button:hover { background: #e6ff9b; }
+    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 15px; margin: 26px 0 13px; }
+    .section-heading h2 { font: 700 15px "Manrope", sans-serif; margin: 0; letter-spacing: 0; }
+    .section-heading p { color: var(--muted); font-size: 11px; margin: 4px 0 0; }
+    .metrics { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border: 1px solid var(--line); border-radius: 9px; background: var(--surface); }
+    .metric { padding: 18px 21px 17px; min-width: 0; }
+    .metric + .metric { border-left: 1px solid var(--line); }
+    .metric-label { color: var(--muted); font-size: 11px; font-weight: 600; }
+    .metric-value { font: 700 clamp(20px, 2.4vw, 27px) "Manrope", sans-serif; margin: 7px 0 4px; letter-spacing: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .metric-foot { font-size: 10px; color: var(--muted); }
+    .metric-foot .good { color: var(--green); font-weight: 700; }
+    .dashboard-grid { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(270px, .9fr); gap: 18px; margin-top: 20px; }
+    .panel { background: var(--surface); border: 1px solid var(--line); border-radius: 9px; padding: 18px; min-width: 0; }
+    .panel-title { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 17px; }
+    .panel-title h3 { font: 700 13px "Manrope", sans-serif; margin: 0; letter-spacing: 0; }
+    .panel-title span { color: var(--muted); font-size: 10px; }
+    .sales-chart { height: 158px; display: flex; align-items: end; gap: clamp(8px, 2.6vw, 22px); border-bottom: 1px solid var(--line); padding: 5px 5px 0; }
+    .chart-column { flex: 1; height: 100%; display: flex; align-items: center; justify-content: end; flex-direction: column; gap: 7px; min-width: 0; }
+    .chart-bar-wrap { width: 100%; height: 124px; display: flex; align-items: end; justify-content: center; }
+    .chart-bar { width: min(36px, 68%); min-height: 3px; background: #b8d3c0; border-radius: 5px 5px 1px 1px; transition: height .25s; }
+    .chart-bar.today { background: var(--green); }
+    .chart-day { color: var(--muted); font-size: 9px; padding-bottom: 8px; }
+    .stock-list { display: grid; gap: 0; }
+    .stock-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; border-top: 1px solid var(--line); padding: 12px 0; }
+    .stock-row:first-child { border-top: 0; padding-top: 0; }
+    .stock-name { font-size: 11px; font-weight: 700; }
+    .stock-category { color: var(--muted); font-size: 10px; margin-top: 3px; }
+    .stock-badge { background: var(--coral-pale); color: #a3432b; border-radius: 4px; padding: 5px 7px; font-size: 10px; font-weight: 700; white-space: nowrap; }
+    .empty-state { padding: 20px 10px; color: var(--muted); text-align: center; font-size: 12px; }
+    .table-wrap { background: white; border: 1px solid var(--line); border-radius: 9px; overflow-x: auto; }
+    table { width: 100%; border-collapse: collapse; min-width: 580px; }
+    th { text-align: left; padding: 12px 15px; color: var(--muted); background: #fafbf8; font-size: 10px; text-transform: uppercase; letter-spacing: .5px; font-weight: 700; }
+    td { padding: 13px 15px; border-top: 1px solid var(--line); font-size: 11px; vertical-align: middle; }
+    td strong { font-size: 11px; }
+    .status { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700; }
+    .status::before { content: ""; width: 6px; height: 6px; border-radius: 50%; background: #58a276; }
+    .status.low { color: #a3432b; }
+    .status.low::before { background: var(--coral); }
+    .toolbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 0 0 14px; }
+    .search { width: min(310px, 100%); height: 39px; border: 1px solid var(--line); border-radius: 7px; background: white; padding: 0 12px; outline: none; font-size: 12px; }
+    .search:focus, input:focus, select:focus, textarea:focus { border-color: #78a78a; box-shadow: 0 0 0 3px rgb(35 107 78 / 10%); outline: none; }
+    .sales-layout { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(290px, .75fr); gap: 18px; align-items: start; }
+    .product-picker { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+    .pick-item { background: white; border: 1px solid var(--line); border-radius: 8px; padding: 13px; text-align: left; min-width: 0; transition: border .15s, transform .15s; }
+    .pick-item:hover { border-color: #8bb49a; transform: translateY(-1px); }
+    .pick-item:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+    .pick-name { display: block; font-size: 12px; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .pick-meta { display: flex; justify-content: space-between; gap: 8px; color: var(--muted); font-size: 10px; margin-top: 11px; }
+    .pick-price { color: var(--green); font-weight: 700; }
+    .cart-panel { position: sticky; top: 16px; }
+    .cart-lines { display: grid; gap: 0; max-height: 245px; overflow: auto; }
+    .cart-line { display: grid; grid-template-columns: minmax(0,1fr) auto auto; align-items: center; gap: 10px; border-top: 1px solid var(--line); padding: 10px 0; }
+    .cart-line:first-child { border-top: 0; }
+    .cart-line-name { font-size: 11px; font-weight: 700; }
+    .cart-line-price { font-size: 10px; color: var(--muted); margin-top: 3px; }
+    .qty-control { display: flex; align-items: center; gap: 7px; }
+    .qty-control button { border: 1px solid var(--line); border-radius: 5px; width: 25px; height: 25px; background: white; color: var(--ink); }
+    .qty-control span { font-size: 11px; min-width: 12px; text-align: center; }
+    .remove-line { border: 0; background: none; color: #a3432b; font-size: 17px; padding: 2px; }
+    .form-field { display: grid; gap: 6px; margin-top: 12px; }
+    .form-field label { font-size: 10px; color: var(--muted); font-weight: 700; }
+    .form-field input, .form-field select, .form-field textarea { width: 100%; border: 1px solid var(--line); background: white; border-radius: 6px; min-height: 38px; padding: 8px 10px; font-size: 12px; }
+    .form-field textarea { min-height: 74px; resize: vertical; }
+    .total-line { display: flex; align-items: center; justify-content: space-between; border-top: 1px solid var(--line); margin-top: 15px; padding-top: 14px; font-size: 12px; }
+    .total-line strong { font: 700 19px "Manrope", sans-serif; }
+    .full-width { width: 100%; margin-top: 14px; }
+    .muted-copy { color: var(--muted); font-size: 11px; line-height: 1.55; }
+    .automation-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .automation-item { border: 1px solid var(--line); border-radius: 8px; background: white; padding: 15px; }
+    .automation-top { display: flex; justify-content: space-between; align-items: start; gap: 10px; }
+    .automation-item h3 { font: 700 12px "Manrope", sans-serif; margin: 0; }
+    .automation-item p { color: var(--muted); font-size: 10px; line-height: 1.5; margin: 7px 0 12px; }
+    .toggle { appearance: none; width: 35px; height: 20px; background: #d9ded7; border-radius: 15px; position: relative; flex: 0 0 auto; cursor: pointer; transition: background .15s; }
+    .toggle::after { content: ""; width: 14px; height: 14px; background: white; border-radius: 50%; position: absolute; left: 3px; top: 3px; transition: transform .15s; box-shadow: 0 1px 3px #0002; }
+    .toggle:checked { background: var(--green); }
+    .toggle:checked::after { transform: translateX(15px); }
+    .automation-tag { display: inline-block; color: var(--green); background: var(--mint); padding: 4px 6px; font-size: 9px; font-weight: 700; border-radius: 4px; }
+    .notice { background: #fff8e8; border-left: 3px solid var(--amber); border-radius: 5px; color: #6e5727; padding: 11px 13px; font-size: 10px; line-height: 1.5; margin: 13px 0 18px; }
+    .modal-backdrop { position: fixed; inset: 0; z-index: 10; background: rgb(22 35 26 / 43%); display: none; align-items: center; justify-content: center; padding: 18px; }
+    .modal-backdrop.open { display: flex; }
+    .modal { width: min(460px, 100%); max-height: min(90vh, 760px); overflow-y: auto; background: white; border-radius: 10px; padding: 22px; box-shadow: var(--shadow); animation: enter .18s ease both; }
+    .modal-head { display: flex; justify-content: space-between; align-items: start; gap: 12px; margin-bottom: 15px; }
+    .modal-head h2 { font: 700 17px "Manrope", sans-serif; margin: 0; }
+    .modal-close { border: 0; background: #f1f4ef; color: var(--ink); border-radius: 6px; width: 29px; height: 29px; font-size: 18px; }
+    .modal-actions { display: flex; justify-content: end; gap: 8px; margin-top: 18px; }
+    .receipt { font-family: "DM Sans", sans-serif; color: #202821; }
+    .receipt-brand { font: 800 20px "Manrope", sans-serif; margin: 0; }
+    .receipt-rule { border: 0; border-top: 1px dashed #cbd2ca; margin: 14px 0; }
+    .receipt-row { display: flex; justify-content: space-between; gap: 12px; margin: 8px 0; font-size: 12px; }
+    .receipt-foot { color: var(--muted); font-size: 10px; text-align: center; margin-top: 17px; }
+    .toast { position: fixed; right: 22px; bottom: 22px; z-index: 20; background: var(--green-dark); color: white; border-radius: 7px; padding: 12px 16px; font-size: 12px; box-shadow: var(--shadow); opacity: 0; transform: translateY(8px); pointer-events: none; transition: .2s; }
+    .toast.show { opacity: 1; transform: translateY(0); }
+    .mobile-nav { display: none; }
+    @media (max-width: 900px) {
+      .app-shell { grid-template-columns: 205px minmax(0,1fr); }
+      main { padding-inline: 24px; }
+      .dashboard-grid { grid-template-columns: 1fr; }
+      .automation-grid { grid-template-columns: 1fr; }
+    }
+    @media (max-width: 680px) {
+      .app-shell { display: block; padding-bottom: 63px; }
+      .sidebar { display: none; }
+      main { padding: 20px 16px 32px; }
+      .topbar { align-items: start; margin-bottom: 23px; }
+      .page-title { font-size: 23px; }
+      .today-label { display: none; }
+      .top-actions .button { padding-inline: 11px; }
+      .welcome-strip { align-items: start; padding: 17px; }
+      .welcome-strip::after { right: -45px; }
+      .welcome-strip h2 { font-size: 16px; }
+      .welcome-strip .button { align-self: center; white-space: nowrap; }
+      .metrics { grid-template-columns: 1fr; }
+      .metric { padding: 13px 16px; display: grid; grid-template-columns: 1fr auto; align-items: center; gap: 2px 8px; }
+      .metric + .metric { border-left: 0; border-top: 1px solid var(--line); }
+      .metric-value { grid-column: 2; grid-row: 1 / span 2; margin: 0; font-size: 20px; }
+      .metric-foot { grid-column: 1; }
+      .dashboard-grid { gap: 12px; }
+      .sales-layout { grid-template-columns: 1fr; }
+      .cart-panel { position: static; }
+      .product-picker { grid-template-columns: repeat(2, minmax(0,1fr)); }
+      .toolbar { align-items: stretch; flex-direction: column; }
+      .search { width: 100%; }
+      .mobile-nav { position: fixed; z-index: 5; bottom: 0; left: 0; right: 0; display: grid; grid-template-columns: repeat(4, 1fr); background: white; border-top: 1px solid var(--line); padding: 6px 7px max(6px, env(safe-area-inset-bottom)); }
+      .mobile-nav .nav-button { flex-direction: column; justify-content: center; gap: 3px; color: var(--muted); font-size: 9px; padding: 5px 2px; }
+      .mobile-nav .nav-button.active { color: var(--green-dark); background: var(--mint); }
+      .mobile-nav .nav-icon { font-size: 16px; }
+      .toast { left: 15px; right: 15px; bottom: 73px; text-align: center; }
+    }
+    @media print {
+      body * { visibility: hidden !important; }
+      #receiptContent, #receiptContent * { visibility: visible !important; }
+      #receiptContent { position: fixed; inset: 0 auto auto 0; width: 78mm; padding: 8mm; }
+      .receipt-foot { display: block; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">m</div><div><div class="brand-name">miúdo</div><div class="brand-sub">gestão simples, todo dia</div></div></div>
+      <div class="nav-label">Menu principal</div>
+      <nav class="nav-list" aria-label="Navegação principal">
+        <button class="nav-button active" data-view="dashboard"><span class="nav-icon">⌂</span> Visão geral</button>
+        <button class="nav-button" data-view="sales"><span class="nav-icon">＋</span> Nova venda</button>
+        <button class="nav-button" data-view="products"><span class="nav-icon">▦</span> Produtos e estoque</button>
+        <button class="nav-button" data-view="customers"><span class="nav-icon">♧</span> Clientes e mensagens</button>
+      </nav>
+      <div class="sidebar-bottom"><div class="local-note"><strong>Seus dados ficam aqui</strong>Salvos neste navegador. Exporte uma cópia em Produtos e estoque.</div></div>
+    </aside>
+    <main>
+      <header class="topbar">
+        <div><div class="eyebrow" id="pageEyebrow">Seu negócio, em dia</div><h1 class="page-title" id="pageTitle">Visão geral</h1></div>
+        <div class="top-actions"><span class="today-label" id="todayLabel"></span><button class="button" data-action="new-sale">＋ <span>Nova venda</span></button></div>
+      </header>
+
+      <section class="view active" id="view-dashboard">
+        <div class="welcome-strip"><div><h2>Bom ter você por aqui.</h2><p>Seu resumo de hoje está pronto.</p></div><button class="button" data-action="new-sale">＋ Registrar venda</button></div>
+        <div class="section-heading"><div><h2>Hoje, em números</h2><p>Atualizado automaticamente a cada venda</p></div></div>
+        <div class="metrics" id="metrics"></div>
+        <div class="dashboard-grid">
+          <section class="panel"><div class="panel-title"><h3>Vendas nos últimos 7 dias</h3><span>por dia</span></div><div class="sales-chart" id="salesChart"></div></section>
+          <section class="panel"><div class="panel-title"><h3>Estoque pedindo atenção</h3><span id="lowStockCount"></span></div><div class="stock-list" id="lowStockList"></div></section>
+        </div>
+        <div class="section-heading"><div><h2>Vendas recentes</h2><p>As últimas movimentações do caixa</p></div><button class="button ghost" data-view="sales">Ver vendas →</button></div>
+        <div class="table-wrap"><table><thead><tr><th>Horário</th><th>Cliente</th><th>Pagamento</th><th>Total</th><th></th></tr></thead><tbody id="recentSales"></tbody></table></div>
+      </section>
+
+      <section class="view" id="view-sales">
+        <div class="section-heading" style="margin-top:0"><div><h2>Registrar venda</h2><p>Toque nos produtos para colocar no pedido.</p></div></div>
+        <div class="sales-layout"><div><input class="search" id="saleSearch" placeholder="Buscar produto pelo nome..." aria-label="Buscar produto"><div class="product-picker" id="productPicker" style="margin-top:12px"></div></div>
+          <section class="panel cart-panel"><div class="panel-title"><h3>Seu pedido</h3><span id="cartCount">0 itens</span></div><div class="cart-lines" id="cartLines"></div>
+            <div class="form-field"><label for="saleCustomer">Cliente (opcional)</label><select id="saleCustomer"></select></div>
+            <div class="form-field"><label for="salePayment">Forma de pagamento</label><select id="salePayment"><option>Pix</option><option>Cartão de débito</option><option>Cartão de crédito</option><option>Dinheiro</option><option>Outro</option></select></div>
+            <div class="total-line"><span>Total</span><strong id="cartTotal">R$ 0,00</strong></div><button class="button full-width" id="completeSale" disabled>Confirmar venda e gerar recibo</button>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="view-products">
+        <div class="section-heading" style="margin-top:0"><div><h2>Produtos e estoque</h2><p>A baixa acontece automaticamente quando uma venda é confirmada.</p></div></div>
+        <div class="toolbar"><input class="search" id="productSearch" placeholder="Buscar produto..." aria-label="Buscar produto no estoque"><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="button secondary" id="exportData">↓ Exportar dados</button><button class="button" data-action="add-product">＋ Novo produto</button></div></div>
+        <div class="table-wrap"><table><thead><tr><th>Produto</th><th>Categoria</th><th>Preço</th><th>Custo</th><th>Em estoque</th><th>Status</th><th>Ação</th></tr></thead><tbody id="productRows"></tbody></table></div>
+      </section>
+
+      <section class="view" id="view-customers">
+        <div class="section-heading" style="margin-top:0"><div><h2>Clientes e mensagens</h2><p>Organize contatos e prepare lembretes sem sair do app.</p></div><button class="button" data-action="add-customer">＋ Novo cliente</button></div>
+        <div class="notice">Os controles salvam modelos de mensagem. Esta versão não agenda nem envia mensagens sozinha: ao abrir o WhatsApp, revise o texto antes de enviar. O envio automático exige a API oficial do WhatsApp Business e um serviço conectado.</div>
+        <div class="automation-grid" id="automationSettings"></div>
+        <div class="toolbar"><input class="search" id="customerSearch" placeholder="Buscar cliente..." aria-label="Buscar cliente"></div>
+        <div class="table-wrap"><table><thead><tr><th>Cliente</th><th>Telefone</th><th>Última compra</th><th>Recebe mensagens</th><th>Ação</th></tr></thead><tbody id="customerRows"></tbody></table></div>
+      </section>
+    </main>
+  </div>
+  <nav class="mobile-nav" aria-label="Navegação móvel">
+    <button class="nav-button active" data-view="dashboard"><span class="nav-icon">⌂</span>Início</button>
+    <button class="nav-button" data-view="sales"><span class="nav-icon">＋</span>Vender</button>
+    <button class="nav-button" data-view="products"><span class="nav-icon">▦</span>Estoque</button>
+    <button class="nav-button" data-view="customers"><span class="nav-icon">♧</span>Clientes</button>
+  </nav>
+  <div class="modal-backdrop" id="modalBackdrop" role="presentation"><section class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle"><div class="modal-head"><h2 id="modalTitle"></h2><button class="modal-close" id="closeModal" aria-label="Fechar">×</button></div><div id="modalBody"></div></section></div>
+  <div class="toast" id="toast" role="status"></div>
+
+  <script>
+    const STORAGE_KEY = "miudo-gestao-v1";
+    const today = new Date();
+    const dateKey = date => date.toISOString().slice(0, 10);
+    const isoToday = dateKey(today);
+    const seed = {
+      products: [
+        { id: "p1", name: "Café especial 250g", category: "Mercearia", price: 32, cost: 17, stock: 8, min: 5 },
+        { id: "p2", name: "Caneca artesanal", category: "Casa", price: 48, cost: 24, stock: 3, min: 4 },
+        { id: "p3", name: "Granola da casa 300g", category: "Mercearia", price: 26, cost: 12, stock: 14, min: 5 },
+        { id: "p4", name: "Camiseta algodão", category: "Vestuário", price: 79, cost: 35, stock: 12, min: 4 },
+        { id: "p5", name: "Vela cítrica", category: "Casa", price: 39, cost: 16, stock: 2, min: 4 },
+        { id: "p6", name: "Chá de hortelã", category: "Mercearia", price: 18, cost: 7, stock: 16, min: 6 }
+      ],
+      customers: [
+        { id: "c1", name: "Marina Costa", phone: "11987654321", consent: true },
+        { id: "c2", name: "Rafael Lima", phone: "11976543210", consent: true },
+        { id: "c3", name: "Joana Alves", phone: "11965432109", consent: false }
+      ],
+      sales: [
+        { id: "v1", date: isoToday, time: "09:42", customerId: "c1", payment: "Pix", lines: [{ productId: "p1", name: "Café especial 250g", qty: 1, price: 32, cost: 17 }, { productId: "p3", name: "Granola da casa 300g", qty: 1, price: 26, cost: 12 }], total: 58 },
+        { id: "v2", date: isoToday, time: "10:18", customerId: null, payment: "Cartão de débito", lines: [{ productId: "p4", name: "Camiseta algodão", qty: 1, price: 79, cost: 35 }], total: 79 }
+      ],
+      automations: { afterSale: true, reminder: false, collection: false }
+    };
+    let state;
+    try { state = JSON.parse(localStorage.getItem(STORAGE_KEY)) || seed; } catch { state = seed; }
+    let cart = [];
+    let toastTimer;
+    const money = value => new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(value || 0);
+    const escapeHtml = value => String(value ?? "").replace(/[&<>"']/g, char => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[char]);
+    const persist = () => localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    const customerById = id => state.customers.find(customer => customer.id === id);
+    const productById = id => state.products.find(product => product.id === id);
+    const notify = message => {
+      const toast = document.getElementById("toast");
+      toast.textContent = message;
+      toast.classList.add("show");
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toast.classList.remove("show"), 2600);
+    };
+    const setView = view => {
+      document.querySelectorAll(".view").forEach(section => section.classList.toggle("active", section.id === `view-${view}`));
+      document.querySelectorAll(".nav-button[data-view]").forEach(button => button.classList.toggle("active", button.dataset.view === view));
+      const titles = { dashboard: ["Seu negócio, em dia", "Visão geral"], sales: ["Caixa", "Nova venda"], products: ["Organize sua loja", "Produtos e estoque"], customers: ["Relacionamento", "Clientes e mensagens"] };
+      document.getElementById("pageEyebrow").textContent = titles[view][0];
+      document.getElementById("pageTitle").textContent = titles[view][1];
+      if (view === "sales") renderSale();
+    };
+    const getTodaySales = () => state.sales.filter(sale => sale.date === isoToday);
+    function renderDashboard() {
+      const sales = getTodaySales();
+      const revenue = sales.reduce((sum, sale) => sum + sale.total, 0);
+      const profit = sales.reduce((sum, sale) => sum + sale.lines.reduce((lineSum, line) => lineSum + (line.price - line.cost) * line.qty, 0), 0);
+      const sold = {};
+      sales.forEach(sale => sale.lines.forEach(line => { sold[line.name] = (sold[line.name] || 0) + line.qty; }));
+      const best = Object.entries(sold).sort((a, b) => b[1] - a[1])[0];
+      document.getElementById("metrics").innerHTML = `
+        <div class="metric"><div class="metric-label">Faturamento de hoje</div><div class="metric-value">${money(revenue)}</div><div class="metric-foot"><span class="good">${sales.length} venda${sales.length === 1 ? "" : "s"}</span> confirmada${sales.length === 1 ? "" : "s"}</div></div>
+        <div class="metric"><div class="metric-label">Lucro bruto estimado</div><div class="metric-value">${money(profit)}</div><div class="metric-foot">Vendas menos custo dos produtos</div></div>
+        <div class="metric"><div class="metric-label">Mais vendido hoje</div><div class="metric-value" style="font-size:${best && best[0].length > 14 ? "18px" : "22px"}">${best ? escapeHtml(best[0]) : "Ainda sem vendas"}</div><div class="metric-foot">${best ? `${best[1]} unidade${best[1] === 1 ? "" : "s"} vendida${best[1] === 1 ? "" : "s"}` : "Registre a primeira venda"}</div></div>`;
+      const dates = Array.from({ length: 7 }, (_, index) => { const date = new Date(); date.setDate(date.getDate() - (6 - index)); return date; });
+      const daily = dates.map(date => state.sales.filter(sale => sale.date === dateKey(date)).reduce((sum, sale) => sum + sale.total, 0));
+      const max = Math.max(1, ...daily);
+      document.getElementById("salesChart").innerHTML = dates.map((date, index) => `<div class="chart-column"><div class="chart-bar-wrap"><div class="chart-bar ${index === 6 ? "today" : ""}" style="height:${Math.max(3, daily[index] / max * 100)}%" title="${money(daily[index])}"></div></div><div class="chart-day">${new Intl.DateTimeFormat("pt-BR", { weekday: "short" }).format(date).replace(".", "")}</div></div>`).join("");
+      const low = state.products.filter(product => product.stock <= product.min);
+      document.getElementById("lowStockCount").textContent = `${low.length} alerta${low.length === 1 ? "" : "s"}`;
+      document.getElementById("lowStockList").innerHTML = low.length ? low.slice(0, 4).map(product => `<div class="stock-row"><div><div class="stock-name">${escapeHtml(product.name)}</div><div class="stock-category">${escapeHtml(product.category)}</div></div><span class="stock-badge">${product.stock} un. restantes</span></div>`).join("") : `<div class="empty-state">Tudo certo: nenhum produto abaixo do mínimo.</div>`;
+      const recent = [...state.sales].sort((a, b) => `${b.date}${b.time}`.localeCompare(`${a.date}${a.time}`)).slice(0, 5);
+      document.getElementById("recentSales").innerHTML = recent.length ? recent.map(sale => `<tr><td>${sale.date === isoToday ? `Hoje, ${escapeHtml(sale.time)}` : new Intl.DateTimeFormat("pt-BR").format(new Date(`${sale.date}T12:00:00`))}</td><td>${escapeHtml(customerById(sale.customerId)?.name || "Venda balcão")}</td><td>${escapeHtml(sale.payment)}</td><td><strong>${money(sale.total)}</strong></td><td><button class="button ghost" data-receipt="${escapeHtml(sale.id)}">Recibo</button></td></tr>`).join("") : `<tr><td colspan="5" class="empty-state">Nenhuma venda registrada.</td></tr>`;
+    }
+    function renderSale() {
+      const query = (document.getElementById("saleSearch")?.value || "").toLowerCase();
+      const cartQty = id => cart.find(line => line.productId === id)?.qty || 0;
+      const visible = state.products.filter(product => product.name.toLowerCase().includes(query));
+      document.getElementById("productPicker").innerHTML = visible.length ? visible.map(product => `<button class="pick-item" data-add-to-cart="${escapeHtml(product.id)}" ${product.stock <= cartQty(product.id) ? "disabled" : ""}><span class="pick-name">${escapeHtml(product.name)}</span><span class="pick-meta"><span>${product.stock - cartQty(product.id)} em estoque</span><span class="pick-price">${money(product.price)}</span></span></button>`).join("") : `<div class="empty-state">Nenhum produto encontrado.</div>`;
+      document.getElementById("cartLines").innerHTML = cart.length ? cart.map(line => `<div class="cart-line"><div><div class="cart-line-name">${escapeHtml(line.name)}</div><div class="cart-line-price">${money(line.price)} cada</div></div><div class="qty-control"><button data-cart-change="${escapeHtml(line.productId)}" data-delta="-1" aria-label="Diminuir quantidade">−</button><span>${line.qty}</span><button data-cart-change="${escapeHtml(line.productId)}" data-delta="1" aria-label="Aumentar quantidade">+</button></div><button class="remove-line" data-cart-remove="${escapeHtml(line.productId)}" aria-label="Remover produto">×</button></div>`).join("") : `<div class="empty-state">Seu pedido está vazio.<br>Escolha um produto para começar.</div>`;
+      const count = cart.reduce((sum, line) => sum + line.qty, 0);
+      document.getElementById("cartCount").textContent = `${count} ${count === 1 ? "item" : "itens"}`;
+      document.getElementById("cartTotal").textContent = money(cart.reduce((sum, line) => sum + line.price * line.qty, 0));
+      document.getElementById("completeSale").disabled = cart.length === 0;
+      const customerSelect = document.getElementById("saleCustomer");
+      const current = customerSelect.value;
+      customerSelect.innerHTML = `<option value="">Venda balcão (sem cadastro)</option>${state.customers.map(customer => `<option value="${escapeHtml(customer.id)}">${escapeHtml(customer.name)}</option>`).join("")}`;
+      if (state.customers.some(customer => customer.id === current)) customerSelect.value = current;
+    }
+    function renderProducts() {
+      const query = (document.getElementById("productSearch")?.value || "").toLowerCase();
+      const products = state.products.filter(product => `${product.name} ${product.category}`.toLowerCase().includes(query));
+      document.getElementById("productRows").innerHTML = products.length ? products.map(product => `<tr><td><strong>${escapeHtml(product.name)}</strong></td><td>${escapeHtml(product.category)}</td><td>${money(product.price)}</td><td>${money(product.cost)}</td><td>${product.stock} un.</td><td><span class="status ${product.stock <= product.min ? "low" : ""}">${product.stock <= product.min ? "Repor" : "Em dia"}</span></td><td><button class="button ghost" data-restock="${escapeHtml(product.id)}">＋ Repor</button></td></tr>`).join("") : `<tr><td colspan="7" class="empty-state">Nenhum produto encontrado.</td></tr>`;
+    }
+    const automationTypes = [
+      { key: "afterSale", title: "Pós-venda", desc: "Deixe um agradecimento pronto para revisar e enviar.", tag: "Modelo de mensagem" },
+      { key: "reminder", title: "Lembrete", desc: "Prepare uma mensagem para um contato autorizado.", tag: "Modelo de mensagem" },
+      { key: "collection", title: "Cobrança", desc: "Revise o lembrete antes de iniciar a conversa.", tag: "Modelo de mensagem" }
+    ];
+    function renderCustomers() {
+      document.getElementById("automationSettings").innerHTML = automationTypes.map(item => `<section class="automation-item"><div class="automation-top"><h3>${item.title}</h3><input class="toggle" type="checkbox" data-automation="${item.key}" ${state.automations[item.key] ? "checked" : ""} aria-label="Ativar ${item.title.toLowerCase()}"></div><p>${item.desc}</p><span class="automation-tag">${item.tag}</span></section>`).join("");
+      const query = (document.getElementById("customerSearch")?.value || "").toLowerCase();
+      const customers = state.customers.filter(customer => `${customer.name} ${customer.phone}`.toLowerCase().includes(query));
+      document.getElementById("customerRows").innerHTML = customers.length ? customers.map(customer => {
+        const lastSale = [...state.sales].filter(sale => sale.customerId === customer.id).sort((a, b) => b.date.localeCompare(a.date))[0];
+        const enabled = automationTypes.filter(item => state.automations[item.key]);
+        const options = enabled.length ? enabled.map(item => `<option value="${item.key}">${item.title}</option>`).join("") : `<option value="">Ative um modelo acima</option>`;
+        return `<tr><td><strong>${escapeHtml(customer.name)}</strong></td><td>${escapeHtml(customer.phone)}</td><td>${lastSale ? new Intl.DateTimeFormat("pt-BR").format(new Date(`${lastSale.date}T12:00:00`)) : "Sem compras"}</td><td>${customer.consent ? "Autorizado" : "Não autorizado"}</td><td><select class="message-template" data-customer="${escapeHtml(customer.id)}" aria-label="Modelo de mensagem" style="max-width:115px;min-height:30px;border:1px solid var(--line);border-radius:5px;font-size:10px" ${enabled.length && customer.consent ? "" : "disabled"}>${options}</select> <button class="button ghost" data-message="${escapeHtml(customer.id)}" ${enabled.length && customer.consent ? "" : "disabled title=\"Ative um modelo e confirme autorização\""}>Abrir ↗</button></td></tr>`;
+      }).join("") : `<tr><td colspan="5" class="empty-state">Nenhum cliente encontrado.</td></tr>`;
+    }
+    function renderAll() { renderDashboard(); renderProducts(); renderCustomers(); renderSale(); }
+    function openModal(title, body, onSubmit) {
+      const modal = document.getElementById("modalBackdrop");
+      document.getElementById("modalTitle").textContent = title;
+      document.getElementById("modalBody").innerHTML = body;
+      modal.classList.add("open");
+      const form = document.getElementById("modalForm");
+      if (form && onSubmit) form.addEventListener("submit", event => { event.preventDefault(); onSubmit(new FormData(form)); });
+      const focusTarget = modal.querySelector("input:not([type=checkbox]), select, textarea");
+      if (focusTarget) focusTarget.focus();
+    }
+    function closeModal() { document.getElementById("modalBackdrop").classList.remove("open"); }
+    function showReceipt(sale) {
+      const customer = customerById(sale.customerId);
+      const body = `<div class="receipt" id="receiptContent"><p class="receipt-brand">miúdo</p><div class="muted-copy">Comprovante de venda<br>${new Intl.DateTimeFormat("pt-BR").format(new Date(`${sale.date}T12:00:00`))} às ${escapeHtml(sale.time)}</div><hr class="receipt-rule">${sale.lines.map(line => `<div class="receipt-row"><span>${escapeHtml(line.name)} × ${line.qty}</span><strong>${money(line.qty * line.price)}</strong></div>`).join("")}<hr class="receipt-rule"><div class="receipt-row"><span>Total</span><strong>${money(sale.total)}</strong></div><div class="receipt-row"><span>Pagamento</span><span>${escapeHtml(sale.payment)}</span></div>${customer ? `<div class="receipt-row"><span>Cliente</span><span>${escapeHtml(customer.name)}</span></div>` : ""}<p class="receipt-foot">Obrigado pela preferência!</p></div><div class="modal-actions"><button type="button" class="button secondary" id="printReceipt">Imprimir recibo</button><button type="button" class="button" id="doneReceipt">Concluir</button></div>`;
+      openModal("Venda confirmada", body);
+      document.getElementById("printReceipt").addEventListener("click", () => window.print());
+      document.getElementById("doneReceipt").addEventListener("click", closeModal);
+    }
+    function completeSale() {
+      if (!cart.length) return;
+      const invalid = cart.find(line => !productById(line.productId) || productById(line.productId).stock < line.qty);
+      if (invalid) { notify("Estoque insuficiente. Revise o pedido."); renderSale(); return; }
+      const sale = { id: `v${Date.now()}`, date: isoToday, time: new Intl.DateTimeFormat("pt-BR", { hour: "2-digit", minute: "2-digit" }).format(new Date()), customerId: document.getElementById("saleCustomer").value || null, payment: document.getElementById("salePayment").value, lines: cart.map(line => ({ ...line })), total: cart.reduce((sum, line) => sum + line.price * line.qty, 0) };
+      sale.lines.forEach(line => { productById(line.productId).stock -= line.qty; });
+      state.sales.push(sale);
+      persist(); cart = []; renderAll(); setView("dashboard"); showReceipt(sale);
+    }
+    function addToCart(id) {
+      const product = productById(id);
+      if (!product || product.stock <= (cart.find(line => line.productId === id)?.qty || 0)) return;
+      const line = cart.find(item => item.productId === id);
+      if (line) line.qty += 1;
+      else cart.push({ productId: id, name: product.name, price: Number(product.price), cost: Number(product.cost), qty: 1 });
+      renderSale();
+    }
+    function openProductForm() {
+      openModal("Novo produto", `<form id="modalForm"><div class="form-field"><label for="itemName">Nome do produto</label><input id="itemName" name="name" required maxlength="70"></div><div class="form-field"><label for="itemCategory">Categoria</label><input id="itemCategory" name="category" required maxlength="40" placeholder="Ex.: Mercearia"></div><div class="form-field"><label for="itemPrice">Preço de venda (R$)</label><input id="itemPrice" name="price" type="number" min="0.01" step="0.01" required></div><div class="form-field"><label for="itemCost">Custo por unidade (R$)</label><input id="itemCost" name="cost" type="number" min="0" step="0.01" required></div><div class="form-field"><label for="itemStock">Quantidade inicial</label><input id="itemStock" name="stock" type="number" min="0" step="1" required></div><div class="form-field"><label for="itemMin">Avisar quando chegar a</label><input id="itemMin" name="min" type="number" min="0" step="1" value="3" required></div><div class="modal-actions"><button type="button" class="button secondary" data-close-modal>Cancelar</button><button class="button">Salvar produto</button></div></form>`, form => {
+        state.products.push({ id: `p${Date.now()}`, name: form.get("name").trim(), category: form.get("category").trim(), price: Number(form.get("price")), cost: Number(form.get("cost")), stock: Number(form.get("stock")), min: Number(form.get("min")) });
+        persist(); closeModal(); renderAll(); notify("Produto cadastrado.");
+      });
+    }
+    function openRestock(id) {
+      const product = productById(id);
+      if (!product) return;
+      openModal("Registrar reposição", `<p class="muted-copy">${escapeHtml(product.name)} · saldo atual: ${product.stock} un.</p><form id="modalForm"><div class="form-field"><label for="restockQty">Quantidade recebida</label><input id="restockQty" name="qty" type="number" min="1" step="1" required autofocus></div><div class="modal-actions"><button type="button" class="button secondary" data-close-modal>Cancelar</button><button class="button">Atualizar estoque</button></div></form>`, form => {
+        product.stock += Number(form.get("qty")); persist(); closeModal(); renderAll(); notify("Estoque atualizado.");
+      });
+    }
+    function openCustomerForm() {
+      openModal("Novo cliente", `<form id="modalForm"><div class="form-field"><label for="clientName">Nome</label><input id="clientName" name="name" required maxlength="70"></div><div class="form-field"><label for="clientPhone">WhatsApp com DDD</label><input id="clientPhone" name="phone" type="tel" required placeholder="11912345678" pattern="[0-9 +()-]{10,20}"></div><div class="form-field"><label style="display:flex;align-items:center;gap:8px;color:var(--ink);font-weight:500"><input name="consent" type="checkbox" style="width:15px;min-height:15px"> Autorizou receber mensagens pelo WhatsApp</label></div><div class="modal-actions"><button type="button" class="button secondary" data-close-modal>Cancelar</button><button class="button">Salvar cliente</button></div></form>`, form => {
+        state.customers.push({ id: `c${Date.now()}`, name: form.get("name").trim(), phone: form.get("phone").replace(/\D/g, ""), consent: form.get("consent") === "on" });
+        persist(); closeModal(); renderCustomers(); renderSale(); notify("Cliente cadastrado.");
+      });
+    }
+    function messageCustomer(id, type) {
+      const customer = customerById(id);
+      if (!customer?.consent || !state.automations[type]) return;
+      const firstName = customer.name.split(" ")[0];
+      const messages = {
+        afterSale: `Oi, ${firstName}! Obrigado pela sua compra. Podemos ajudar em algo?`,
+        reminder: `Oi, ${firstName}! Passando para saber se precisa de algo. Estamos por aqui!`,
+        collection: `Oi, ${firstName}! Gostaria de conversar sobre um pagamento pendente. Pode me chamar por aqui?`
+      };
+      const text = messages[type];
+      if (!text) return;
+      const phone = customer.phone.startsWith("55") ? customer.phone : `55${customer.phone}`;
+      window.open(`https://wa.me/${phone}?text=${encodeURIComponent(text)}`, "_blank", "noopener,noreferrer");
+    }
+    document.getElementById("todayLabel").textContent = new Intl.DateTimeFormat("pt-BR", { weekday: "short", day: "numeric", month: "short" }).format(today);
+    document.addEventListener("click", event => {
+      const viewButton = event.target.closest("[data-view]");
+      if (viewButton) { setView(viewButton.dataset.view); return; }
+      const action = event.target.closest("[data-action]")?.dataset.action;
+      if (action === "new-sale") { setView("sales"); return; }
+      if (action === "add-product") { openProductForm(); return; }
+      if (action === "add-customer") { openCustomerForm(); return; }
+      const add = event.target.closest("[data-add-to-cart]");
+      if (add) { addToCart(add.dataset.addToCart); return; }
+      const change = event.target.closest("[data-cart-change]");
+      if (change) {
+        const line = cart.find(item => item.productId === change.dataset.cartChange);
+        const product = productById(change.dataset.cartChange);
+        if (line) line.qty = Math.max(1, Math.min(product.stock, line.qty + Number(change.dataset.delta)));
+        renderSale(); return;
+      }
+      const remove = event.target.closest("[data-cart-remove]");
+      if (remove) { cart = cart.filter(line => line.productId !== remove.dataset.cartRemove); renderSale(); return; }
+      const restock = event.target.closest("[data-restock]");
+      if (restock) { openRestock(restock.dataset.restock); return; }
+      const message = event.target.closest("[data-message]");
+      if (message) { const select = document.querySelector(`[data-customer="${CSS.escape(message.dataset.message)}"].message-template`); messageCustomer(message.dataset.message, select?.value); return; }
+      const receipt = event.target.closest("[data-receipt]");
+      if (receipt) { const sale = state.sales.find(item => item.id === receipt.dataset.receipt); if (sale) showReceipt(sale); return; }
+      if (event.target.closest("[data-close-modal]") || event.target.id === "closeModal" || event.target.id === "doneReceipt") closeModal();
+      if (event.target.id === "completeSale") completeSale();
+    });
+    document.addEventListener("input", event => {
+      if (event.target.id === "saleSearch") renderSale();
+      if (event.target.id === "productSearch") renderProducts();
+      if (event.target.id === "customerSearch") renderCustomers();
+    });
+    document.addEventListener("change", event => {
+      const toggle = event.target.closest("[data-automation]");
+      if (toggle) { state.automations[toggle.dataset.automation] = toggle.checked; persist(); notify("Preferência de mensagem salva."); }
+    });
+    document.getElementById("closeModal").addEventListener("click", closeModal);
+    document.getElementById("modalBackdrop").addEventListener("click", event => { if (event.target.id === "modalBackdrop") closeModal(); });
+    document.getElementById("exportData").addEventListener("click", () => {
+      const blob = new Blob([JSON.stringify(state, null, 2)], { type: "application/json" });
+      const link = document.createElement("a"); link.href = URL.createObjectURL(blob); link.download = `miudo-backup-${isoToday}.json`; link.click(); URL.revokeObjectURL(link.href); notify("Backup baixado.");
+    });
+    renderAll();
+  </script>
+</body>
+</html>
